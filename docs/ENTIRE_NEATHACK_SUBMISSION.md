@@ -69,23 +69,23 @@ entire checkpoint explain HEAD
 ```
 
 ### Step 4: Publish to GitHub & Connect to Entire Platform
-1. Create a repository on GitHub (e.g., `github.com/<your-username>/sentinel-x`).
-2. Add remote and push:
+1. Ensure the remote is set to your repository:
    ```powershell
-   git remote add origin https://github.com/<your-username>/sentinel-x.git
+   git remote -v
+   # origin  https://github.com/rudrapaliwal-1/sentinel-x.git (fetch)
+   # origin  https://github.com/rudrapaliwal-1/sentinel-x.git (push)
+   ```
+2. Push your main branch:
+   ```powershell
    git push -u origin main
    ```
-3. Enable session push synchronization:
-   ```powershell
-   entire configure --push-sessions
-   git push
-   ```
-4. Sign in to [https://entire.io](https://entire.io) with GitHub and import the repository.
+3. Enable session push synchronization in `.entire/settings.json` (set `"push_sessions": true`) when ready to publish checkpoints to GitHub.
+4. Sign in to [https://entire.io](https://entire.io) with GitHub and import the `rudrapaliwal-1/sentinel-x` repository.
 
 ### Step 5: Obtain Judge-Accessible Checkpoint Link
 The official neatHack 2026 link format for judges is:
 ```
-https://entire.io/gh/<OWNER>/<REPO>/commit/<FULL_COMMIT_SHA>
+https://entire.io/gh/rudrapaliwal-1/sentinel-x/commit/<FULL_COMMIT_SHA>
 ```
 
 Verify that opening this URL displays:

@@ -1,0 +1,48 @@
+# SENTINEL-X Phase 8 release audit — 11 October 2026
+
+## Baseline and preservation
+
+The actual project is this Phase 6 directory inside `SENTINEL-X-PHASE7`. The five Phase 7 handoff documents and backend, agent, verifier, authentication, ZIP upload and frontend implementations were inspected before edits. A recoverable local backup was created at `/tmp/sentinel-x-phase8-baseline-20261011.tar.gz` (mode 600). The successful Phase 7 database `local-audit/phase7-browser.db` was left intact: job `job-<redacted-id>` remained VERIFIED with a persisted 8/8 run. The existing tests returned **190 passed, 2 warnings, 32 subtests passed** in 137.73 seconds (`local-audit/phase8-baseline-tests.log`). No GitHub publication occurred.
+
+## Implemented changes
+
+- `backend/workflow.py` persists sanitized `REFLECTION_STARTED` feedback and `REFLECTION_COMPLETED` guidance-validation events, retaining job and attempt correlation. It also limits model failure events to safe error categories. The model never gains approval or verifier control.
+- `agent/tests/test_fixture_integration.py` now asserts the reflection sequence, attempt 1, three failed tests, and absence of patch text in reflection records. The controlled test executes real Docker failure, proposes a fresh fixture revision, rejects the old approval, requires a second approval, and reaches 8/8 VERIFIED. This is **fixture-driven recovery**, not a genuine model failure-to-recovery claim.
+- `backend/database.py` creates and opens SQLite with owner-only permissions, repairs existing permissive database modes, restricts transient sidecars when present, and rejects symlink database paths. The existing `.env` and local evidence directory were restricted to owner-only access without changing their contents. `backend/tests/test_database_permissions.py` and `backend/tests/test_model_failure_category.py` cover those hardening paths.
+- `backend/readiness.py` adds short, sanitized dependency checks for SQLite, trusted callables, required paths, Ollama, configured Qwen model, Docker daemon, verifier image and host `patch`. `backend/main.py` returns 503 with per-check actions when critical dependencies fail; `/health` remains a liveness endpoint. `scripts/startup_check.py` diagnoses ports and services without starting or terminating processes.
+- `backend/lifecycle_telemetry.py` defines a fixed, typed, local-only formatter. `backend/tests/test_lifecycle_telemetry.py` proves attempt 0 and retry counts and excludes source, patch, prompt, email, project ID, credentials and logs. There is **no exporter attached** and no new hosted lifecycle event transmission.
+- `frontend/src/api/jobs.ts` shows sanitized Agent B feedback and Docker verdict in the local timeline. `scripts/baseline_docker_proof.py` and `scripts/phase8_docker_proof.py` create repeatable Docker proof. New tests cover failure diagnostics. `RUN_PROJECT.md` and the five Phase 8 release deliverables document startup and audit results.
+
+## Fresh independent Docker proof
+
+| Scenario | Actual result | Source and evidence |
+| --- | --- | --- |
+| A — unpatched vulnerable baseline | Docker exit 1; 8 collected, 4 passed, 4 failed; `VULNERABILITY_DETECTED` | Diagnostic artifact `baseline-<redacted-id>`, no approved patch or backend attestation. Timestamp, profile and source revision in `local-audit/phase8-vulnerable-baseline.json`. |
+| B — incomplete fixture patch | `VERIFICATION_FAILED`; 8 collected, 5 passed, 3 failed | Fresh owned upload, approved fixture hash and evidence `run-<redacted-id>` in `local-audit/phase8-bc-proof.jsonl`. |
+| C — correct fixture patch | `VERIFIED`; 8 collected, 8 passed, 0 failed | Fresh owned upload, approved fixture hash and evidence `run-<redacted-id>` in the same proof file. |
+
+Scenarios B and C used prepared test fixtures and are not represented as model-generated. The controlled Agent B test separately passed with a real 5/3 Docker failure followed by a fresh 8/0 Docker success and mandatory second approval.
+
+## Genuine AI and browser result
+
+A fresh Phase 8 browser user registered, uploaded the controlled BOLA ZIP, and started job `job-<redacted-id>`. The genuine Qwen attempt ended in `EXECUTION_ERROR` before producing a patch after roughly 280 seconds; the historical Phase 7 genuine Qwen success remains intact. A second fresh browser job, `job-<redacted-id>`, used the unchanged local Qwen model and produced a policy-approved ownership guard. Its exact hash was `sha256:27f634d874aa62474ddf042736fd4ef0485f4102e1b698ec0062f49d9409261b`. The authenticated user clicked the approval control; the backend bound that hash and source revision to `USER_SESSION` approval `approval-<redacted-id>`. Real Docker run `run-<redacted-id>` completed at `2026-10-11T11:10:34.180968+00:00` with **8 passed, 0 failed**, VERIFIED. The browser displayed all eight test names, the exact hash, valid attestation and `conclusion: VERIFIED`; after a page refresh the same evidence was retrieved again. The second authenticated user saw an empty project list and `job not found` for the first user's evidence. The initial generation error was not a Docker test failure and did not trigger Agent B. No natural Qwen-generated Docker failure or genuine Agent B recovery has been demonstrated.
+
+## Neatlogs authorization boundary
+
+The existing Agent A Neatlogs observer and credential file were not changed. The local Phase 8 server did not load the SDK/key, and hosted delivery was not verified in this run. The proposed new lifecycle payload is **not enabled**. The [official Python SDK documentation](https://docs.neatlogs.com/sdk/python) lists default ingest base `https://ingest.neatlogs.com` (EU option `https://eu.ingest.neatlogs.com`); this integration supplies no custom endpoint. Exact hosted retention terms for this project are unknown. See the approval request in the final handoff before enabling any new outbound category.
+
+The proposed categories are `project.uploaded`, `finding.submitted`, `agent.inference.started`, `agent.inference.completed`, `patch.generated`, `patch.validation.completed`, `approval.recorded`, `verification.started`, `verification.completed`, `agent.reflection.started`, `agent.reflection.completed`. Proposed fields are only `event`, opaque `job_id`/`run_id` where present, `attempt`, allowlisted `outcome`, bounded test counts and `duration_ms`. Opaque IDs can still be joined to local projects by anyone who has the local database; they are pseudonyms, not anonymous data. Source, patch, prompt, finding descriptions, identity, credentials, paths and test logs are excluded. Existing SDK capture behavior is unchanged and separate from this proposed payload.
+
+## Security and dependency review
+
+Authentication/session expiry/logout/CSRF, owner isolation, ZIP traversal/symlink/size/duplicate rejection, patch/source binding, stale approval rejection, protected test immutability, Docker constraints and forged evidence rejection are covered by the backend/agent/verifier tests. A fresh browser second-user isolation check passed. Docker uses a non-root image, no network, resource limits, dropped capabilities, no new privileges, a read-only root filesystem and no Docker socket. No sandbox policy was weakened. The host's permissive default modes had left `.env` at 666 and SQLite evidence at 644/666; `.env` and databases are now 600, and `local-audit` is 700. These permissions are checked locally and new database creation enforces 600.
+
+`pnpm audit --json` identified **4 advisories**: React Router 6.30.6 has two moderate advisories with published fixes in major version 7; `braces` 3.0.3 is a high advisory in Tailwind build tooling with no patched version listed in the audit; `postcss-selector-parser` 6.1.4 is a moderate advisory in Tailwind build tooling whose fix requires a major transitive version. Browser routing uses fixed internal links or encoded job/search values, and uploaded repositories are not fed into the frontend build; this reduces current reachability but does not erase the advisories. No major upgrade or potentially incompatible transitive override was applied immediately before the demo. Audit JSON is `local-audit/phase8-pnpm-audit.json`.
+
+## Final tests and recommendation
+
+**Core local demo recommendation: READY for the explicit BOLA contract.** The fresh Phase 8 browser path has all core acceptance points: registration, ZIP upload, genuine Qwen proposal, exact-hash browser approval, real Docker 8/8, persisted dashboard evidence after refresh, and cross-user isolation. Frontend TypeScript and production build passed (Vite: 1,601 modules, 17.44 seconds). Startup preflight reported all critical dependencies ready and both services reachable. The final single agent/backend/verifier run passed: **196 passed, 0 failed, 0 skipped, 2 warnings, 32 subtests passed** in 150.91 seconds (`local-audit/phase8-final-tests.log`). The first fresh Qwen generation error is a reliability limitation, not a failed security verification. The final-code backend was restarted and `/ready` returned all nine critical checks ready; the verified browser job and session still loaded after restart. Agent B genuine recovery remains **PARTIAL**, and new hosted Neatlogs lifecycle export remains **BLOCKED BY OWNER APPROVAL**.
+
+## Known limits
+
+Only the explicit Python/FastAPI BOLA contract is supported. Production mode remains disabled; there are no durable workers or TLS deployment in this local release. On this CPU host, genuine inference may take several minutes or fail before a patch. The exact historical Phase 7 `GenerationError: EditError` root cause is unknown. Official hackathon submission rules were not supplied and remain unconfirmed.

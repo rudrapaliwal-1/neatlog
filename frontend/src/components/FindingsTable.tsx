@@ -1,0 +1,8 @@
+import { Link } from "react-router-dom";
+import { ArrowUpRight, FileCode2 } from "lucide-react";
+import type { Job } from "../api/types";
+import StatusBadge from "./StatusBadge";
+export default function FindingsTable({ jobs }: { jobs: Job[] }) {
+  if (!jobs.length) return <div className="empty-state">No jobs yet. Upload a supported repository and select its BOLA finding.</div>;
+  return <div className="table-wrap"><table><thead><tr><th>Finding / Job</th><th>Severity</th><th>Source</th><th>Status</th><th>Updated</th><th /></tr></thead><tbody>{jobs.map(job => { const f = job.finding; return <tr key={job.job_id}><td><div className="finding-cell"><span className="finding-id">{f?.id || job.finding_id || job.job_id}</span><strong>{f?.type?.replaceAll("_", " ") || job.summary || "Security finding"}</strong><small>{job.job_id}</small></div></td><td><span className={`severity ${String(f?.severity || "unknown").toLowerCase()}`}>{f?.severity || "—"}</span></td><td><div className="file-cell"><FileCode2 size={14} />{f?.file_path || "—"}</div></td><td><StatusBadge status={job.status} /></td><td className="date-cell">{job.updated_at || job.created_at ? new Date(String(job.updated_at || job.created_at)).toLocaleString() : "—"}</td><td><Link className="table-action" to={`/jobs/${encodeURIComponent(job.job_id)}`} aria-label={`Open ${job.job_id}`}><ArrowUpRight size={16} /></Link></td></tr>; })}</tbody></table></div>;
+}

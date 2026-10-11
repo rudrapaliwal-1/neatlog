@@ -1,0 +1,7 @@
+import { CheckCircle2, CircleDot, XCircle, Clock3 } from "lucide-react";
+import type { WorkflowEvent } from "../api/types";
+import StatusBadge from "./StatusBadge";
+export default function ActivityTimeline({ events }: { events: WorkflowEvent[] }) {
+  if (!events.length) return <div className="empty-state">No workflow events were returned for this job.</div>;
+  return <div className="timeline">{events.map((event, i) => <div className="timeline-row" key={`${event.timestamp}-${i}`}><div className={`timeline-icon ${event.event_type === "VERIFIED" ? "green" : ["VERIFICATION_FAILED","POLICY_REJECTED","EXECUTION_ERROR","USER_REJECTED"].includes(event.event_type) ? "red" : "blue"}`}>{event.event_type === "VERIFIED" ? <CheckCircle2 size={15} /> : ["VERIFICATION_FAILED","POLICY_REJECTED","EXECUTION_ERROR","USER_REJECTED"].includes(event.event_type) ? <XCircle size={15} /> : <CircleDot size={15} />}</div><div className="timeline-content"><div className="timeline-title"><strong>{event.event_type.replaceAll("_", " ")}</strong><StatusBadge status={event.event_type} /></div><p>{event.summary || "Workflow event recorded by backend."}</p>{event.patch_hash && <code className="timeline-hash">{event.patch_hash}</code>}<div className="timeline-meta"><span><Clock3 size={12} />{event.timestamp ? new Date(event.timestamp).toLocaleString() : "Timestamp unavailable"}</span>{event.attempt != null && <span>Attempt {event.attempt}</span>}</div></div></div>)}</div>;
+}

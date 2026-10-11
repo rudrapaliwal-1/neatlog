@@ -1,0 +1,25 @@
+.env
+.env.*
+!.env.example
+
+backend/project_data/
+backend/*.db
+backend/*.db-journal
+backend/*.db-wal
+backend/*.db-shm
+frontend/node_modules/
+frontend/dist/
+local-audit/
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# Entire CLI local metadata and credentials
+.entire/settings.local.json
+.entire/metadata/
+.entire/logs/
+.entire/tmp/
+.entire/redactors/local/
+

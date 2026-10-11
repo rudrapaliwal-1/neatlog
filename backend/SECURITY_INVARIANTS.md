@@ -1,0 +1,14 @@
+# Enforced security invariants
+
+1. Only the server-owned `TargetManifest` authorizes `bola-demo-v1`, the `app/access.py` patch path, unified diff format, and `bola-required-tests-v1` verification profile. API and AI payloads cannot supply a manifest or command. The diff parser rejects file operations and paths outside the allowlist.
+2. A job stores a SHA-256 revision of the bounded entire configured target tree, including protected tests and configuration. Creation requires a readable regular-file snapshot. Approval and verification reject changed revisions; stale pending jobs transition to `EXECUTION_ERROR`. A passing run rechecks the revision, and evidence rechecks it when read.
+3. An approval is a single decision for a job, patch, attempt, exact UTF-8 patch hash, target and source revision. A unique patch constraint and `BEGIN IMMEDIATE` prevent duplicate decisions. A shared demo token is labeled `DEMO_SHARED_TOKEN`; it does not identify a human. An `ApprovalIdentityProvider` protocol names the future OIDC boundary.
+4. Every state transition checks the legal transition table and performs a compare-and-set update on status and version within a SQLite write transaction. The transition and audit event commit together. Foreign keys are enabled on every connection; startup checks critical schema objects and database integrity.
+5. Each patch has at most one verification run. A durable lease binds a run to one process instance and token; renewal occurs while awaiting the verifier. Only a live owner can persist the result. Recovery expires abandoned runs; late results are discarded. A lease cannot kill a verifier process.
+6. `VERIFIED` requires a current policy-passing patch, exact patch bytes and hash, bound approval, matching run/attempt/revision/profile, trusted verifier report with nonzero matching collected/executed counts, complete collection, successful execution, matching suite/run/patch/revision/profile claims, and a persisted matching evidence digest. Missing or malformed proof becomes `EXECUTION_ERROR`.
+7. Evidence digests detect accidental or unauthorized changes that do not also rewrite every bound record. They do not authenticate a verifier or protect against an administrator who can rewrite the database and digest.
+8. API job data and patch text require the demo token; request bodies and pages are bounded, CORS is exact-origin, responses are noncacheable and carry correlation IDs. The shared token is not sufficient for public production deployment.
+
+## Negative evidence
+
+`tests/test_phase3_security.py` covers stale source, changed protected tests, symlinks, replayed or mismatched verifier claims, missing collection, tampered evidence, lease ownership and late results, compare-and-set failure, lock contention, and malicious diff variants. Earlier suites cover approval races, duplicate verification, retry bounds, malformed findings, timeouts, and rollback.

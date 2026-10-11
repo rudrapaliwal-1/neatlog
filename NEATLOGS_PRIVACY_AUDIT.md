@@ -1,0 +1,15 @@
+# Neatlogs privacy audit — 11 October 2026
+
+## Egress contract
+
+The only allowed event names are the nine in `NEATLOGS_FINAL_INTEGRATION_REPORT.md`. The only application fields are the event name, random opaque correlation and run identifiers, attempt, Boolean success, execution duration, passed count, and failed count. The formatter rejects unknown names, unexpected fields, wrong types, internal ID formats, negative counts, and nonrandom-looking identifiers. Agent B reflection names are rejected. Both the caller and final SDK mask enforce the contract.
+
+Prohibited content includes source and ZIP bytes, patch text and diffs, prompts and model responses, findings and descriptions, user identities, credentials, paths and filenames, test logs, raw verifier output, raw exception messages, request bodies, and IP fields. The exporter receives only a newly constructed dict of typed scalar values. It never receives a job, finding, patch, user, or verification object. The SDK is initialized with `capture_logs=False`, `instrumentations=[]`, `uploads_enabled=False`, and a fixed documented ingest endpoint. A final mask drops SDK companion spans and removes incidental events, links, resource attributes, and status descriptions. No per-span input or output was visible in the inspected hosted trace.
+
+The `backend/tests/test_lifecycle_telemetry.py` suite injects realistic source text, patch diffs, email addresses, session tokens, API keys, verifier output, exception text, paths, IP strings, and user-controlled descriptions. Unknown fields are rejected. The actual owned-project test captures all nine names with one opaque correlation, attempt 0, and a verified two-test fake-verifier outcome without those sensitive strings. Additional tests cover inference failure, failed verification followed by a fresh attempt, no duplicate completion per run, telemetry outage isolation, and durable opaque IDs. **28 privacy/integration tests passed** in the final focused run. Full regression passed 221 tests and 32 subtests.
+
+## Hosted observation and residual risk
+
+The controlled final run's local export mask retained nine approved spans and dropped nine SDK-generated companion spans. The SDK reported a successful flush and zero export failures. The authenticated dashboard listed all nine final trace IDs as Ready, confirming hosted ingestion. Final trace `<redacted-id>` showed `verification.completed`, one span, no input/output, and the expected opaque correlation and run IDs, `attempt=0`, `success=true`, `tests_passed=8`, and `tests_failed=0` in its Attributes panel. No unapproved event was observed among the controlled final trace IDs.
+
+Correlation and run IDs are random, but repeated correlation IDs deliberately link events from one project in Neatlogs. They are pseudonymous. A party with access to both the local SQLite mapping and the hosted traces could re-identify that relationship. The network connection itself necessarily reveals a source IP to Neatlogs infrastructure; no IP field is included in application telemetry. Retention, residency, and deletion guarantees were not audited. The default external-export mode remains `off`.

@@ -26,68 +26,45 @@ From the official hackathon specification ([https://hack.entire.io/neathacks-202
 | Verification Stage | State | Evidence & Details |
 | :--- | :--- | :--- |
 | **CLI Installation** | **VERIFIED** | `Entire CLI 0.11.4` (windows/amd64) at `C:\Users\Print\.local\bin\entire.exe`. |
-| **Antigravity Hooks** | **CONFIGURED** | `.agents/hooks.json` configured with Windows-compatible fallback checks. |
-| **Repository Settings** | **CONFIGURED** | `.entire/settings.json` configured with `push_sessions: false` and `git-refs` backend. |
-| **Git Repository Root** | **ARCHIVE ONLY** | Current folder `Agent-Solution--main` is an unversioned ZIP extraction lacking `.git`. |
-| **Existing Checkpoints** | **NONE** | No checkpoint objects, Git refs, or session transcripts exist in the extracted ZIP archive. |
-| **Judge Link** | **PENDING** | Requires Git initialization, a linked commit, and push to GitHub. |
+| **Antigravity Hooks** | **VERIFIED** | Active session `ff289aad-7e75-445e-b875-3781543ecb21` tracked in `.agents/hooks.json`. |
+| **Repository Settings** | **VERIFIED** | `.entire/settings.json` configured with `git-refs` backend. |
+| **Git Repository Root** | **INITIALIZED** | Initialized on branch `main` with remote `https://github.com/rudrapaliwal-1/neatlog.git`. |
+| **Generated Checkpoint** | **VERIFIED** | Checkpoint ID `01M4N94JE9XCAZ641XEQ65A3ZG` recorded in commit `030f4384cb52eb7f730db0b37ad6bd8a756ecf0d`. |
+| **Judge Link** | **READY FOR PUSH** | `https://entire.io/gh/rudrapaliwal-1/neatlog/commit/030f4384cb52eb7f730db0b37ad6bd8a756ecf0d` |
 
 ---
 
-## 3. Step-by-Step Procedure to Generate & Submit the Checkpoint
+## 3. Verified Checkpoint Details
 
-To establish a genuine Entire checkpoint for neatHack judges:
+- **Checkpoint ID**: `01M4N94JE9XCAZ641XEQ65A3ZG`
+- **Session ID**: `ff289aad-7e75-445e-b875-3781543ecb21`
+- **Commit SHA**: `030f4384cb52eb7f730db0b37ad6bd8a756ecf0d`
+- **Git Reference**: `refs/entire/checkpoints/ZG/01M4N94JE9XCAZ641XEQ65A3ZG`
+- **GitHub Target**: `https://github.com/rudrapaliwal-1/neatlog.git`
 
-### Step 1: Initialize Git in Workspace
+---
+
+## 4. Final Push & neatHack Submission Steps
+
+### Step 1: Push Main Branch to GitHub
 ```powershell
-git init -b main
+git push -u origin main
 ```
 
-### Step 2: Enable Entire for Antigravity
+### Step 2: Push Entire Checkpoint References to GitHub
+Push the captured checkpoint refs to your GitHub repository:
 ```powershell
-entire enable --agent antigravity --skip-push-sessions
+git push origin "refs/entire/checkpoints/*:refs/entire/checkpoints/*"
 ```
 
-Verify status:
-```powershell
-entire status
-entire doctor
-```
+### Step 3: Connect to Entire Platform
+1. Sign in to [https://entire.io](https://entire.io) with GitHub.
+2. Authorize and import the `rudrapaliwal-1/neatlog` repository.
 
-### Step 3: Capture First AI-Assisted Commit
-Stage project files and create the initial commit:
-```powershell
-git add .
-git commit -m "feat(sentinel): initial verified SENTINEL-X release with Entire provenance"
+### Step 4: Submit to neatHack 2026
+Use the verified checkpoint URL for submission:
 ```
-
-Verify that the commit trailer contains the Entire checkpoint identifier:
-```powershell
-git log -n 1
-entire checkpoint list
-entire checkpoint explain HEAD
+https://entire.io/gh/rudrapaliwal-1/neatlog/commit/030f4384cb52eb7f730db0b37ad6bd8a756ecf0d
 ```
-
-### Step 4: Publish to GitHub & Connect to Entire Platform
-1. Ensure the remote is set to your repository:
-   ```powershell
-   git remote -v
-   # origin  https://github.com/rudrapaliwal-1/sentinel-x.git (fetch)
-   # origin  https://github.com/rudrapaliwal-1/sentinel-x.git (push)
-   ```
-2. Push your main branch:
-   ```powershell
-   git push -u origin main
-   ```
-3. Enable session push synchronization in `.entire/settings.json` (set `"push_sessions": true`) when ready to publish checkpoints to GitHub.
-4. Sign in to [https://entire.io](https://entire.io) with GitHub and import the `rudrapaliwal-1/sentinel-x` repository.
-
-### Step 5: Obtain Judge-Accessible Checkpoint Link
-The official neatHack 2026 link format for judges is:
-```
-https://entire.io/gh/rudrapaliwal-1/sentinel-x/commit/<FULL_COMMIT_SHA>
-```
-
-Verify that opening this URL displays:
-- **Sessions**: The prompt, decisions, and agent reasoning.
-- **Changes**: The exact file diffs linked to the commit.
+- **Checkpoint ID**: `01M4N94JE9XCAZ641XEQ65A3ZG`
+- **Track**: Best Use of Entire (Checkpoints)
